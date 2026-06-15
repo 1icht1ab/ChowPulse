@@ -14,6 +14,22 @@ export const translations = {
 
     caregiverMode: { label: "Modo Cuidador", hint: "Estás en el perfil familiar compartido. Lo que registres lo ven los dueños y demás miembros en tiempo real." },
 
+    auth: {
+      welcome: "Bienvenido a ChowPulse",
+      subtitle: "El cuidado de tus peludos, en un solo lugar.",
+      email: "Correo electrónico",
+      password: "Contraseña",
+      signIn: "Iniciar sesión",
+      signUp: "Crear cuenta",
+      signOut: "Cerrar sesión",
+      noAccount: "¿No tienes cuenta?",
+      haveAccount: "¿Ya tienes cuenta?",
+      toSignUp: "Regístrate",
+      toSignIn: "Inicia sesión",
+      checkEmail: "Te enviamos un correo para confirmar tu cuenta.",
+      demoBadge: "Modo demo (sin Supabase)",
+    },
+
     dashboard: {
       greeting: "Hola de nuevo",
       title: "Tus peludos hoy",
@@ -122,6 +138,22 @@ export const translations = {
     lang: { label: "Language", switchTo: "Switch to {lang}", es: "Spanish", en: "English" },
 
     caregiverMode: { label: "Caregiver Mode", hint: "You're in the shared family profile. Everything you log is visible in real time to the owners and other members." },
+
+    auth: {
+      welcome: "Welcome to ChowPulse",
+      subtitle: "All your pets' care, in one place.",
+      email: "Email",
+      password: "Password",
+      signIn: "Sign in",
+      signUp: "Create account",
+      signOut: "Sign out",
+      noAccount: "Don't have an account?",
+      haveAccount: "Already have an account?",
+      toSignUp: "Sign up",
+      toSignIn: "Sign in",
+      checkEmail: "We sent you an email to confirm your account.",
+      demoBadge: "Demo mode (no Supabase)",
+    },
 
     dashboard: {
       greeting: "Welcome back",
