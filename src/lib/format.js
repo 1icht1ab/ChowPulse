@@ -26,7 +26,7 @@ export const dietTypeLabel = (type, t) => t(`diet.types.${type}`);
 
 // Color de marca asociado a cada especie (para los iconos geométricos).
 export const speciesColor = (s) =>
-  ({ dog: "text-cta-500", cat: "text-brand-500", turtle: "text-health-500" }[s] || "text-ink-400");
+  ({ dog: "text-cta-500", cat: "text-brand-500", turtle: "text-health-500", reptile: "text-health-500" }[s] || "text-ink-400");
 
 // Token aleatorio no adivinable para la URL pública (espejo del trigger SQL).
 export const genSlug = () => Math.random().toString(36).slice(2, 10);

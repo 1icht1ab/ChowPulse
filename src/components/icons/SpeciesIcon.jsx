@@ -59,7 +59,7 @@ function Critter(props) {
   );
 }
 
-const MAP = { dog: Dog, cat: Cat, turtle: Turtle };
+const MAP = { dog: Dog, cat: Cat, turtle: Turtle, reptile: Turtle };
 
 export function SpeciesIcon({ species, className, ...props }) {
   const Cmp = MAP[species] || Critter;

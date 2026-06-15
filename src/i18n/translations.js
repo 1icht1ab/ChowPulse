@@ -40,7 +40,7 @@ export const translations = {
       noPets: "Este hogar aún no tiene mascotas registradas.",
     },
 
-    species: { dog: "Perro", cat: "Gato", turtle: "Tortuga", bird: "Ave", rabbit: "Conejo", fish: "Pez", other: "Mascota" },
+    species: { dog: "Perro", cat: "Gato", turtle: "Tortuga", reptile: "Reptil", bird: "Ave", rabbit: "Conejo", fish: "Pez", other: "Mascota" },
 
     pet: { publicProfile: "Perfil público activo", privateProfile: "Perfil privado", public: "Público", allGood: "Todo al día" },
 
@@ -165,7 +165,7 @@ export const translations = {
       noPets: "This household has no pets registered yet.",
     },
 
-    species: { dog: "Dog", cat: "Cat", turtle: "Turtle", bird: "Bird", rabbit: "Rabbit", fish: "Fish", other: "Pet" },
+    species: { dog: "Dog", cat: "Cat", turtle: "Turtle", reptile: "Reptile", bird: "Bird", rabbit: "Rabbit", fish: "Fish", other: "Pet" },
 
     pet: { publicProfile: "Public profile active", privateProfile: "Private profile", public: "Public", allGood: "All up to date" },
 
