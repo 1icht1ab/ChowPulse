@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   SISTEMA DE DISEÑO · MASCOTARIO
+   Tokens de color (paleta de marca) expuestos como utilidades Tailwind:
+   bg-cta-500, text-brand-700, ring-health-300, border-ink-100, etc.
+   ===================================================================== */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* 🟠 Naranja cálido — acciones principales / CTA / energía */
+  --color-cta-50: #fff4ed;
+  --color-cta-100: #ffe6d5;
+  --color-cta-200: #fdcdab;
+  --color-cta-300: #fbac77;
+  --color-cta-400: #f98c4b;
+  --color-cta-500: #f4701f;
+  --color-cta-600: #dc5a12;
+  --color-cta-700: #b6450f;
+
+  /* 🟣 Púrpura profundo — branding / barra lateral / acentos elegantes */
+  --color-brand-50: #f4f1fd;
+  --color-brand-100: #e9e3fb;
+  --color-brand-200: #d2c6f6;
+  --color-brand-300: #b29cee;
+  --color-brand-400: #8e6fe2;
+  --color-brand-500: #6d45d0;
+  --color-brand-600: #5a33b6;
+  --color-brand-700: #4a2995;
+  --color-brand-800: #3c2178;
+  --color-brand-900: #2e1a5c;
+
+  /* 🟢 Teal / Turquesa — salud, éxito, vacunas al día */
+  --color-health-50: #ecfdf8;
+  --color-health-100: #cff9ed;
+  --color-health-200: #9ff0dc;
+  --color-health-300: #5fe0c6;
+  --color-health-400: #2bc7ac;
+  --color-health-500: #14a88f;
+  --color-health-600: #0e8975;
+  --color-health-700: #0c6e5f;
+
+  /* 🔵 Azul marino — texto, contenedores, fondos neutros/oscuros */
+  --color-ink-50: #f3f5fa;
+  --color-ink-100: #e4e8f2;
+  --color-ink-200: #c7cfe2;
+  --color-ink-300: #9ba9c9;
+  --color-ink-400: #6b7ca5;
+  --color-ink-500: #475681;
+  --color-ink-600: #344063;
+  --color-ink-700: #283251;
+  --color-ink-800: #1b2440;
+  --color-ink-900: #111a33;
+
+  /* Fondo cálido tipo "papel" para dar calidez sin perder limpieza */
+  --color-cream: #fbf7f1;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-cream font-sans text-ink-700 antialiased;
+  }
+  /* Foco visible y consistente para accesibilidad por teclado */
+  :focus-visible {
+    outline: none;
+  }
+}
+
+/* Animación suave para popovers, tooltips y drawers (idea fusionada del aporte) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-fadeIn {
+  animation: fadeIn 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn {
+    animation: none;
+  }
+}
