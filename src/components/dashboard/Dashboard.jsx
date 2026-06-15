@@ -1,13 +1,54 @@
+import { useState, useEffect } from "react";
 import { Plus, PawPrint, HeartHandshake } from "lucide-react";
 import { HouseholdSwitcher } from "./HouseholdSwitcher";
 import { PetCard } from "./PetCard";
 import { LanguageSelector } from "../ui/LanguageSelector";
 import { Tooltip } from "../ui/Tooltip";
 import { useTranslation } from "../../i18n/useTranslation";
+import { supabase, isSupabaseConfigured } from "../../lib/supabaseClient";
 
-/** Vista general: saludo, modo cuidador, selector de idioma, selector de Hogar y grid de mascotas. */
-export function Dashboard({ households, householdId, onHouseholdChange, pets, selectedPetId, onSelectPet }) {
+/** Tarjeta fantasma mientras cargan las mascotas. */
+function PetSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-ink-100 bg-white">
+      <div className="aspect-[5/4] w-full animate-pulse bg-ink-100" />
+      <div className="space-y-2 p-4">
+        <div className="h-4 w-1/2 animate-pulse rounded bg-ink-100" />
+        <div className="h-3 w-2/3 animate-pulse rounded bg-ink-100" />
+        <div className="mt-1 h-6 w-24 animate-pulse rounded-full bg-ink-100" />
+      </div>
+    </div>
+  );
+}
+
+/** Vista general: header (modo cuidador + idioma + hogar) y grid de mascotas reactivo al hogar. */
+export function Dashboard({ households, householdId, onHouseholdChange, pets: mockPets, selectedPetId, onSelectPet }) {
   const { t } = useTranslation();
+  const [remotePets, setRemotePets] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Carga reactiva: al cambiar el hogar seleccionado, consulta SUS mascotas en Supabase.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !householdId) return;
+    let active = true;
+    setLoading(true);
+    supabase
+      .from("pets")
+      .select("*")
+      .eq("household_id", householdId)
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) console.error("ChowPulse: error cargando mascotas:", error.message);
+        setRemotePets(error ? [] : data ?? []);
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [householdId]);
+
+  const pets = remotePets ?? mockPets; // datos reales si Supabase está configurado; si no, mock
+  const showEmpty = !loading && remotePets !== null && pets.length === 0;
 
   return (
     <section>
@@ -42,9 +83,10 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets, se
       <div className="mt-6 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-400">
           {t("dashboard.petsInHousehold")}
-          <span className="rounded-full bg-cta-100 px-2 py-0.5 text-xs font-bold text-cta-700">{pets.length}</span>
+          <span className="rounded-full bg-cta-100 px-2 py-0.5 text-xs font-bold text-cta-700">
+            {loading ? "…" : pets.length}
+          </span>
         </h2>
-        {/* Acceso rápido con micro-interacción */}
         <button
           type="button"
           aria-label={t("a11y.addPet")}
@@ -55,26 +97,38 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets, se
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pets.map((pet) => (
-          <PetCard
-            key={pet.id}
-            pet={pet}
-            selected={pet.id === selectedPetId}
-            onSelect={(p) => onSelectPet(p.id)}
-          />
-        ))}
+        {loading ? (
+          [0, 1, 2].map((i) => <PetSkeleton key={i} />)
+        ) : (
+          <>
+            {pets.map((pet) => (
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                selected={pet.id === selectedPetId}
+                onSelect={(p) => onSelectPet(p.id)}
+              />
+            ))}
 
-        {/* Tarjeta para añadir mascota (CTA naranja) */}
-        <button
-          type="button"
-          className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-cta-200 bg-cta-50/40 p-6 text-cta-600 transition hover:border-cta-300 hover:bg-cta-50 focus-visible:ring-2 focus-visible:ring-cta-400"
-        >
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cta-500 text-white shadow-lg shadow-cta-500/30">
-            <Plus className="h-6 w-6" strokeWidth={2.5} />
-          </span>
-          <span className="font-bold">{t("dashboard.addPet")}</span>
-          <span className="text-center text-xs text-cta-500/80">{t("dashboard.addPetSub")}</span>
-        </button>
+            {showEmpty && (
+              <div className="col-span-full rounded-3xl border-2 border-dashed border-ink-200 bg-white p-8 text-center text-sm font-medium text-ink-400">
+                {t("dashboard.noPets")}
+              </div>
+            )}
+
+            {/* Tarjeta para añadir mascota (CTA naranja) */}
+            <button
+              type="button"
+              className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-cta-200 bg-cta-50/40 p-6 text-cta-600 transition hover:border-cta-300 hover:bg-cta-50 focus-visible:ring-2 focus-visible:ring-cta-400"
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cta-500 text-white shadow-lg shadow-cta-500/30">
+                <Plus className="h-6 w-6" strokeWidth={2.5} />
+              </span>
+              <span className="font-bold">{t("dashboard.addPet")}</span>
+              <span className="text-center text-xs text-cta-500/80">{t("dashboard.addPetSub")}</span>
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

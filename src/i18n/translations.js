@@ -21,6 +21,7 @@ export const translations = {
       addPet: "Añadir mascota",
       addPetSub: "Registra a un nuevo miembro de la familia",
       careOf: "Cuidado de {name}",
+      noPets: "Este hogar aún no tiene mascotas registradas.",
     },
 
     species: { dog: "Perro", cat: "Gato", turtle: "Tortuga", bird: "Ave", rabbit: "Conejo", fish: "Pez", other: "Mascota" },
@@ -129,6 +130,7 @@ export const translations = {
       addPet: "Add pet",
       addPetSub: "Register a new family member",
       careOf: "Caring for {name}",
+      noPets: "This household has no pets registered yet.",
     },
 
     species: { dog: "Dog", cat: "Cat", turtle: "Turtle", bird: "Bird", rabbit: "Rabbit", fish: "Fish", other: "Pet" },
