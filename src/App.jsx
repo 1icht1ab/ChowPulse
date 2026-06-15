@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LayoutDashboard, PawPrint, Bone, HeartPulse, GraduationCap, Heart, LogOut, Loader2 } from "lucide-react";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { DietWidget } from "./components/diet/DietWidget";
 import { PublicProfileCard } from "./components/public/PublicProfileCard";
 import { FloatingHelp } from "./components/ui/FloatingHelp";
 import { LoginScreen } from "./components/auth/LoginScreen";
-import { households, pets as seedPets } from "./data/mockData";
+import { households as mockHouseholds, pets as mockPets } from "./data/mockData";
 import { genSlug } from "./lib/format";
 import { cn } from "./lib/cn";
 import { useTranslation } from "./i18n/useTranslation";
 import { useAuth } from "./auth/AuthContext";
+import { fetchHouseholds, fetchPets, fetchPetDetail, setPetPublic } from "./lib/queries";
 
-// Navegación principal (i18n por id).
 const NAV = [
   { id: "home", icon: LayoutDashboard },
   { id: "pets", icon: PawPrint },
@@ -20,7 +20,6 @@ const NAV = [
   { id: "training", icon: GraduationCap },
 ];
 
-/** Logotipo en texto: "ChowPulse". */
 function Brand() {
   return (
     <div className="flex items-center gap-2.5">
@@ -51,29 +50,85 @@ export default function App() {
   const { t } = useTranslation();
   const { loading: authLoading, session, configured, signOut, user } = useAuth();
 
-  const [allPets, setAllPets] = useState(seedPets);
-  const [householdId, setHouseholdId] = useState(households[0].id);
-  const [selectedPetId, setSelectedPetId] = useState(seedPets[0].id);
+  const [households, setHouseholds] = useState(mockHouseholds);
+  const [householdId, setHouseholdId] = useState(mockHouseholds[0].id);
+  const [pets, setPets] = useState(() => mockPets.filter((p) => p.household_id === mockHouseholds[0].id));
+  const [loading, setLoading] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState(() => mockPets[0]?.id ?? null);
+  const [detail, setDetail] = useState(null); // { diet, skills } del seleccionado (modo real)
   const [active, setActive] = useState("home");
 
-  const householdPets = allPets.filter((p) => p.household_id === householdId);
-  const selectedPet = householdPets.find((p) => p.id === selectedPetId) || householdPets[0];
+  // Hogares reales del usuario.
+  useEffect(() => {
+    if (!configured) return;
+    let on = true;
+    fetchHouseholds().then((list) => {
+      if (on && list.length) {
+        setHouseholds(list);
+        setHouseholdId(list[0].id);
+      }
+    });
+    return () => {
+      on = false;
+    };
+  }, [configured]);
 
-  function selectHousehold(id) {
-    setHouseholdId(id);
-    const first = allPets.find((p) => p.household_id === id);
-    if (first) setSelectedPetId(first.id);
-  }
+  // Mascotas del hogar seleccionado (reactivo). Real con Supabase, si no mock.
+  useEffect(() => {
+    if (!configured) {
+      const mp = mockPets.filter((p) => p.household_id === householdId);
+      setPets(mp);
+      setSelectedPetId(mp[0]?.id ?? null);
+      return;
+    }
+    let on = true;
+    setLoading(true);
+    fetchPets(householdId).then((list) => {
+      if (!on) return;
+      setPets(list);
+      setSelectedPetId(list[0]?.id ?? null);
+      setLoading(false);
+    });
+    return () => {
+      on = false;
+    };
+  }, [householdId, configured]);
 
-  function togglePublic(petId, value) {
-    setAllPets((prev) =>
+  // Detalle (dieta + trucos) del seleccionado — solo en modo real.
+  useEffect(() => {
+    if (!configured || !selectedPetId) {
+      setDetail(null);
+      return;
+    }
+    let on = true;
+    fetchPetDetail(selectedPetId).then((d) => on && setDetail(d));
+    return () => {
+      on = false;
+    };
+  }, [selectedPetId, configured]);
+
+  const basePet = pets.find((p) => p.id === selectedPetId) || pets[0] || null;
+  // En mock, la mascota ya trae diet/skills; en real, los fusionamos desde `detail`.
+  const selectedPet = basePet
+    ? configured
+      ? { ...basePet, diet: detail?.diet ?? null, skills: detail?.skills ?? [] }
+      : basePet
+    : null;
+
+  async function togglePublic(petId, value) {
+    setPets((prev) =>
       prev.map((p) =>
-        p.id === petId ? { ...p, is_public: value, public_slug: p.public_slug || genSlug() } : p
+        p.id === petId
+          ? { ...p, is_public: value, public_slug: !configured && value ? p.public_slug || genSlug() : p.public_slug }
+          : p
       )
     );
+    if (configured) {
+      const slug = await setPetPublic(petId, value);
+      if (slug) setPets((prev) => prev.map((p) => (p.id === petId ? { ...p, public_slug: slug } : p)));
+    }
   }
 
-  // Gating de autenticación: solo aplica cuando Supabase está configurado.
   if (authLoading) return <Splash />;
   if (configured && !session) return <LoginScreen />;
 
@@ -81,7 +136,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-cream text-ink-700">
-      {/* ===== Barra lateral (desktop) — branding púrpura ===== */}
+      {/* ===== Barra lateral (desktop) ===== */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-brand-800 p-5 lg:flex">
         <Brand />
         <nav className="mt-8 flex-1 space-y-1">
@@ -91,9 +146,7 @@ export default function App() {
               onClick={() => setActive(item.id)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
-                active === item.id
-                  ? "bg-white/15 text-white"
-                  : "text-brand-200 hover:bg-white/10 hover:text-white"
+                active === item.id ? "bg-white/15 text-white" : "text-brand-200 hover:bg-white/10 hover:text-white"
               )}
             >
               <item.icon className="h-5 w-5" strokeWidth={2.2} />
@@ -145,8 +198,9 @@ export default function App() {
           <Dashboard
             households={households}
             householdId={householdId}
-            onHouseholdChange={selectHousehold}
-            pets={householdPets}
+            onHouseholdChange={setHouseholdId}
+            pets={pets}
+            loading={loading}
             selectedPetId={selectedPet?.id}
             onSelectPet={setSelectedPetId}
           />
@@ -185,7 +239,6 @@ export default function App() {
         ))}
       </nav>
 
-      {/* ===== Ayuda flotante global ===== */}
       <FloatingHelp />
     </div>
   );

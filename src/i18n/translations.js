@@ -66,6 +66,7 @@ export const translations = {
     diet: {
       types: { barf: "BARF", kibble: "Pienso", wet: "Húmeda", homemade: "Casera", mixed: "Mixta" },
       title: "Plan nutricional",
+      none: "Sin dieta activa registrada.",
       activeOf: "Dieta activa de {name}",
       totalDaily: "Total diario",
       mealsPerDay: "Comidas/día",
@@ -191,6 +192,7 @@ export const translations = {
     diet: {
       types: { barf: "BARF", kibble: "Kibble", wet: "Wet", homemade: "Homemade", mixed: "Mixed" },
       title: "Nutrition plan",
+      none: "No active diet registered.",
       activeOf: "{name}'s active diet",
       totalDaily: "Daily total",
       mealsPerDay: "Meals/day",

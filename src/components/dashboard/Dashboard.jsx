@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
 import { Plus, PawPrint, HeartHandshake } from "lucide-react";
 import { HouseholdSwitcher } from "./HouseholdSwitcher";
 import { PetCard } from "./PetCard";
 import { LanguageSelector } from "../ui/LanguageSelector";
 import { Tooltip } from "../ui/Tooltip";
 import { useTranslation } from "../../i18n/useTranslation";
-import { supabase, isSupabaseConfigured } from "../../lib/supabaseClient";
 
 /** Tarjeta fantasma mientras cargan las mascotas. */
 function PetSkeleton() {
@@ -21,34 +19,10 @@ function PetSkeleton() {
   );
 }
 
-/** Vista general: header (modo cuidador + idioma + hogar) y grid de mascotas reactivo al hogar. */
-export function Dashboard({ households, householdId, onHouseholdChange, pets: mockPets, selectedPetId, onSelectPet }) {
+/** Vista general (presentacional): header + grid de mascotas. Los datos llegan por props desde App. */
+export function Dashboard({ households, householdId, onHouseholdChange, pets, loading, selectedPetId, onSelectPet }) {
   const { t } = useTranslation();
-  const [remotePets, setRemotePets] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // Carga reactiva: al cambiar el hogar seleccionado, consulta SUS mascotas en Supabase.
-  useEffect(() => {
-    if (!isSupabaseConfigured || !householdId) return;
-    let active = true;
-    setLoading(true);
-    supabase
-      .from("pets")
-      .select("*")
-      .eq("household_id", householdId)
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) console.error("ChowPulse: error cargando mascotas:", error.message);
-        setRemotePets(error ? [] : data ?? []);
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [householdId]);
-
-  const pets = remotePets ?? mockPets; // datos reales si Supabase está configurado; si no, mock
-  const showEmpty = !loading && remotePets !== null && pets.length === 0;
+  const showEmpty = !loading && pets.length === 0;
 
   return (
     <section>
@@ -64,7 +38,7 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets: mo
             </h1>
           </div>
 
-          {/* Indicador de Modo Cuidador + Selector de idioma (ES / EN) */}
+          {/* Indicador de Modo Cuidador + Selector de idioma */}
           <div className="flex items-center gap-2">
             <Tooltip label={t("caregiverMode.hint")}>
               <span className="hidden items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 ring-1 ring-inset ring-brand-100 sm:inline-flex">
@@ -116,7 +90,6 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets: mo
               </div>
             )}
 
-            {/* Tarjeta para añadir mascota (CTA naranja) */}
             <button
               type="button"
               className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-cta-200 bg-cta-50/40 p-6 text-cta-600 transition hover:border-cta-300 hover:bg-cta-50 focus-visible:ring-2 focus-visible:ring-cta-400"

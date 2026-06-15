@@ -4,7 +4,6 @@ import { HelpPopover } from "../ui/HelpPopover";
 import { Badge } from "../ui/Badge";
 import { cn } from "../../lib/cn";
 import { useTranslation } from "../../i18n/useTranslation";
-import { supabase, isSupabaseConfigured } from "../../lib/supabaseClient";
 
 // Metadatos visuales por rol (el texto se traduce vía i18n).
 const ROLE_META = {
@@ -14,37 +13,13 @@ const ROLE_META = {
 };
 const ROLE_ORDER = ["owner", "caregiver", "viewer"];
 
-/** Selector de Hogar: consulta `households` en Supabase (RLS) con fallback a mockData. */
+/** Selector de Hogar (presentacional): la lista llega por props desde App. */
 export function HouseholdSwitcher({ households, value, onChange }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [remote, setRemote] = useState(null);
   const ref = useRef(null);
-
-  const list = remote ?? households; // datos reales si los hay; si no, mock
-  const current = list.find((h) => h.id === value) || list[0];
-  const currentRole = ROLE_META[current.role] ?? ROLE_META.caregiver;
-
-  // Query real: hogares + membresías del usuario (la RLS limita a los suyos).
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
-    let active = true;
-    // Vía tabla puente: la RLS limita a las membresías del usuario (rol incluido).
-    supabase
-      .from("household_members")
-      .select("role, households(id, name)")
-      .then(({ data, error }) => {
-        if (!active || error || !data?.length) return;
-        setRemote(
-          data
-            .filter((m) => m.households)
-            .map((m) => ({ id: m.households.id, name: m.households.name, role: m.role, members: null }))
-        );
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const current = households.find((h) => h.id === value) || households[0];
+  const currentRole = ROLE_META[current?.role] ?? ROLE_META.caregiver;
 
   useEffect(() => {
     if (!open) return;
@@ -52,6 +27,8 @@ export function HouseholdSwitcher({ households, value, onChange }) {
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
+
+  if (!current) return null;
 
   return (
     <div className="flex items-center gap-1.5">
@@ -85,10 +62,10 @@ export function HouseholdSwitcher({ households, value, onChange }) {
             role="listbox"
             className="animate-fadeIn absolute left-0 top-full z-40 mt-2 w-full overflow-hidden rounded-2xl border border-ink-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
           >
-            {list.map((h) => {
-              const active = h.id === value;
+            {households.map((h) => {
+              const activeItem = h.id === value;
               return (
-                <li key={h.id} role="option" aria-selected={active}>
+                <li key={h.id} role="option" aria-selected={activeItem}>
                   <button
                     type="button"
                     onClick={() => {
@@ -97,13 +74,13 @@ export function HouseholdSwitcher({ households, value, onChange }) {
                     }}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition",
-                      active ? "bg-brand-50" : "hover:bg-ink-50"
+                      activeItem ? "bg-brand-50" : "hover:bg-ink-50"
                     )}
                   >
                     <span
                       className={cn(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                        active ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-500"
+                        activeItem ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-500"
                       )}
                     >
                       <Home className="h-4 w-4" />
@@ -116,7 +93,7 @@ export function HouseholdSwitcher({ households, value, onChange }) {
                         {t(`household.roles.${h.role}`)}
                       </span>
                     </span>
-                    {active && <Check className="h-4 w-4 text-brand-600" />}
+                    {activeItem && <Check className="h-4 w-4 text-brand-600" />}
                   </button>
                 </li>
               );

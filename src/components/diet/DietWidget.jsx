@@ -18,6 +18,25 @@ const SEG_COLOR = {
 export function DietWidget({ pet }) {
   const { t } = useTranslation();
   const diet = pet.diet;
+
+  // Mascota real sin dieta activa registrada.
+  if (!diet) {
+    return (
+      <article className="overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-sm">
+        <header className="flex items-center gap-3 border-b border-ink-100 bg-gradient-to-br from-cta-50 to-white p-5">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cta-500 text-white shadow-lg shadow-cta-500/30">
+            <Utensils className="h-5 w-5" strokeWidth={2.2} />
+          </span>
+          <div>
+            <h3 className="text-base font-extrabold text-ink-800">{t("diet.title")}</h3>
+            <p className="text-sm text-ink-400">{t("diet.activeOf", { name: pet.name })}</p>
+          </div>
+        </header>
+        <p className="p-5 text-sm text-ink-400">{t("diet.none")}</p>
+      </article>
+    );
+  }
+
   const perMeal = Math.round(diet.daily_grams / diet.meals_per_day);
   const hasBreakdown = Array.isArray(diet.composition) && diet.composition.length > 0;
 
