@@ -4,9 +4,9 @@ import { HelpPopover } from "../ui/HelpPopover";
 import { Badge } from "../ui/Badge";
 import { cn } from "../../lib/cn";
 import { useTranslation } from "../../i18n/useTranslation";
+import { supabase, isSupabaseConfigured } from "../../lib/supabaseClient";
 
 // Metadatos visuales por rol (el texto se traduce vía i18n).
-// Roles del esquema: household_members.role (owner | caregiver | viewer)
 const ROLE_META = {
   owner: { icon: ShieldCheck, tone: "brand" },
   caregiver: { icon: PencilLine, tone: "cta" },
@@ -14,13 +14,37 @@ const ROLE_META = {
 };
 const ROLE_ORDER = ["owner", "caregiver", "viewer"];
 
-/** Selector de Hogar (Household switcher) con explicación de roles para no técnicos. */
+/** Selector de Hogar: consulta `households` en Supabase (RLS) con fallback a mockData. */
 export function HouseholdSwitcher({ households, value, onChange }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [remote, setRemote] = useState(null);
   const ref = useRef(null);
-  const current = households.find((h) => h.id === value) || households[0];
-  const currentRole = ROLE_META[current.role];
+
+  const list = remote ?? households; // datos reales si los hay; si no, mock
+  const current = list.find((h) => h.id === value) || list[0];
+  const currentRole = ROLE_META[current.role] ?? ROLE_META.caregiver;
+
+  // Query real: hogares + membresías del usuario (la RLS limita a los suyos).
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let active = true;
+    // Vía tabla puente: la RLS limita a las membresías del usuario (rol incluido).
+    supabase
+      .from("household_members")
+      .select("role, households(id, name)")
+      .then(({ data, error }) => {
+        if (!active || error || !data?.length) return;
+        setRemote(
+          data
+            .filter((m) => m.households)
+            .map((m) => ({ id: m.households.id, name: m.households.name, role: m.role, members: null }))
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -61,7 +85,7 @@ export function HouseholdSwitcher({ households, value, onChange }) {
             role="listbox"
             className="animate-fadeIn absolute left-0 top-full z-40 mt-2 w-full overflow-hidden rounded-2xl border border-ink-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
           >
-            {households.map((h) => {
+            {list.map((h) => {
               const active = h.id === value;
               return (
                 <li key={h.id} role="option" aria-selected={active}>
@@ -87,7 +111,8 @@ export function HouseholdSwitcher({ households, value, onChange }) {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-ink-800">{h.name}</span>
                       <span className="flex items-center gap-1 text-xs text-ink-400">
-                        <Users className="h-3 w-3" /> {t("household.members", { count: h.members })} ·{" "}
+                        <Users className="h-3 w-3" />
+                        {h.members != null ? `${t("household.members", { count: h.members })} · ` : ""}
                         {t(`household.roles.${h.role}`)}
                       </span>
                     </span>
