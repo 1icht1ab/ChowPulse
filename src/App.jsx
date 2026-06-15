@@ -60,7 +60,7 @@ export default function App() {
 
   // Hogares reales del usuario.
   useEffect(() => {
-    if (!configured) return;
+    if (!configured || !session) return;
     let on = true;
     fetchHouseholds().then((list) => {
       if (on && list.length) {
@@ -71,7 +71,7 @@ export default function App() {
     return () => {
       on = false;
     };
-  }, [configured]);
+  }, [configured, session]);
 
   // Mascotas del hogar seleccionado (reactivo). Real con Supabase, si no mock.
   useEffect(() => {
@@ -81,6 +81,7 @@ export default function App() {
       setSelectedPetId(mp[0]?.id ?? null);
       return;
     }
+    if (!session) return; // aún sin sesión: la app muestra el login
     let on = true;
     setLoading(true);
     fetchPets(householdId).then((list) => {
@@ -92,11 +93,11 @@ export default function App() {
     return () => {
       on = false;
     };
-  }, [householdId, configured]);
+  }, [householdId, configured, session]);
 
   // Detalle (dieta + trucos) del seleccionado — solo en modo real.
   useEffect(() => {
-    if (!configured || !selectedPetId) {
+    if (!configured || !session || !selectedPetId) {
       setDetail(null);
       return;
     }
@@ -105,7 +106,7 @@ export default function App() {
     return () => {
       on = false;
     };
-  }, [selectedPetId, configured]);
+  }, [selectedPetId, configured, session]);
 
   const basePet = pets.find((p) => p.id === selectedPetId) || pets[0] || null;
   // En mock, la mascota ya trae diet/skills; en real, los fusionamos desde `detail`.
