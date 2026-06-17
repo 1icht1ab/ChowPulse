@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Plus, PawPrint, HeartHandshake } from "lucide-react";
 import { HouseholdSwitcher } from "./HouseholdSwitcher";
 import { PetCard } from "./PetCard";
 import { LanguageSelector } from "../ui/LanguageSelector";
 import { Tooltip } from "../ui/Tooltip";
+import { AddPetDialog } from "../pets/AddPetDialog";
 import { useTranslation } from "../../i18n/useTranslation";
 
 /** Tarjeta fantasma mientras cargan las mascotas. */
@@ -20,8 +22,9 @@ function PetSkeleton() {
 }
 
 /** Vista general (presentacional): header + grid de mascotas. Los datos llegan por props desde App. */
-export function Dashboard({ households, householdId, onHouseholdChange, pets, loading, selectedPetId, onSelectPet }) {
+export function Dashboard({ households, householdId, onHouseholdChange, pets, loading, selectedPetId, onSelectPet, onAddPet }) {
   const { t } = useTranslation();
+  const [addOpen, setAddOpen] = useState(false);
   const showEmpty = !loading && pets.length === 0;
 
   return (
@@ -63,6 +66,7 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets, lo
         </h2>
         <button
           type="button"
+          onClick={() => setAddOpen(true)}
           aria-label={t("a11y.addPet")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-cta-500 text-white shadow-md shadow-cta-500/30 transition-transform hover:rotate-90 hover:bg-cta-600 focus-visible:ring-2 focus-visible:ring-cta-400"
         >
@@ -92,6 +96,7 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets, lo
 
             <button
               type="button"
+              onClick={() => setAddOpen(true)}
               className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-cta-200 bg-cta-50/40 p-6 text-cta-600 transition hover:border-cta-300 hover:bg-cta-50 focus-visible:ring-2 focus-visible:ring-cta-400"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cta-500 text-white shadow-lg shadow-cta-500/30">
@@ -103,6 +108,8 @@ export function Dashboard({ households, householdId, onHouseholdChange, pets, lo
           </>
         )}
       </div>
+
+      <AddPetDialog open={addOpen} onClose={() => setAddOpen(false)} onSubmit={onAddPet} />
     </section>
   );
 }

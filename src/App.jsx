@@ -10,7 +10,7 @@ import { genSlug } from "./lib/format";
 import { cn } from "./lib/cn";
 import { useTranslation } from "./i18n/useTranslation";
 import { useAuth } from "./auth/AuthContext";
-import { fetchHouseholds, fetchPets, fetchPetDetail, setPetPublic } from "./lib/queries";
+import { fetchHouseholds, fetchPets, fetchPetDetail, setPetPublic, createPet } from "./lib/queries";
 
 const NAV = [
   { id: "home", icon: LayoutDashboard },
@@ -57,6 +57,7 @@ export default function App() {
   const [selectedPetId, setSelectedPetId] = useState(() => mockPets[0]?.id ?? null);
   const [detail, setDetail] = useState(null); // { diet, skills } del seleccionado (modo real)
   const [active, setActive] = useState("home");
+  const [refreshKey, setRefreshKey] = useState(0); // fuerza recarga de mascotas tras añadir
 
   // Hogares reales del usuario.
   useEffect(() => {
@@ -93,7 +94,7 @@ export default function App() {
     return () => {
       on = false;
     };
-  }, [householdId, configured, session]);
+  }, [householdId, configured, session, refreshKey]);
 
   // Detalle (dieta + trucos) del seleccionado — solo en modo real.
   useEffect(() => {
@@ -115,6 +116,19 @@ export default function App() {
       ? { ...basePet, diet: detail?.diet ?? null, skills: detail?.skills ?? [] }
       : basePet
     : null;
+
+  async function addPet(form) {
+    if (configured && session) {
+      await createPet({ ...form, household_id: householdId, created_by: user.id });
+      setRefreshKey((k) => k + 1); // recarga la lista real
+    } else {
+      // modo demo: alta local efímera
+      setPets((prev) => [
+        ...prev,
+        { id: genSlug(), household_id: householdId, is_public: false, public_slug: null, alerts: [], skills: [], diet: null, ...form },
+      ]);
+    }
+  }
 
   async function togglePublic(petId, value) {
     setPets((prev) =>
@@ -204,6 +218,7 @@ export default function App() {
             loading={loading}
             selectedPetId={selectedPet?.id}
             onSelectPet={setSelectedPetId}
+            onAddPet={addPet}
           />
 
           {selectedPet && (

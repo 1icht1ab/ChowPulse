@@ -37,6 +37,13 @@ export async function fetchPetDetail(petId) {
   return { diet: dietRes.data ?? null, skills: (goalsRes.data ?? []).map((g) => g.skill) };
 }
 
+// Crea una mascota (RLS: requiere ser caregiver+ del hogar) y la devuelve.
+export async function createPet(values) {
+  const { data, error } = await supabase.from("pets").insert(values).select("*").single();
+  if (error) throw error;
+  return data;
+}
+
 // Persiste la visibilidad pública y devuelve el slug generado por el trigger.
 export async function setPetPublic(petId, value) {
   const { error } = await supabase.from("pets").update({ is_public: value }).eq("id", petId);

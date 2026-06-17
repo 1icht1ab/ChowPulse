@@ -41,6 +41,19 @@ export const translations = {
     },
 
     species: { dog: "Perro", cat: "Gato", turtle: "Tortuga", reptile: "Reptil", bird: "Ave", rabbit: "Conejo", fish: "Pez", other: "Mascota" },
+    sex: { male: "Macho", female: "Hembra", unknown: "Desconocido" },
+    addPetForm: {
+      title: "Añadir mascota",
+      name: "Nombre",
+      species: "Especie",
+      sex: "Sexo",
+      breed: "Raza",
+      birthDate: "Nacimiento",
+      photoUrl: "URL de foto (opcional)",
+      bio: "Descripción",
+      cancel: "Cancelar",
+      save: "Guardar",
+    },
 
     pet: { publicProfile: "Perfil público activo", privateProfile: "Perfil privado", public: "Público", allGood: "Todo al día" },
 
@@ -167,6 +180,19 @@ export const translations = {
     },
 
     species: { dog: "Dog", cat: "Cat", turtle: "Turtle", reptile: "Reptile", bird: "Bird", rabbit: "Rabbit", fish: "Fish", other: "Pet" },
+    sex: { male: "Male", female: "Female", unknown: "Unknown" },
+    addPetForm: {
+      title: "Add pet",
+      name: "Name",
+      species: "Species",
+      sex: "Sex",
+      breed: "Breed",
+      birthDate: "Birth date",
+      photoUrl: "Photo URL (optional)",
+      bio: "Description",
+      cancel: "Cancel",
+      save: "Save",
+    },
 
     pet: { publicProfile: "Public profile active", privateProfile: "Private profile", public: "Public", allGood: "All up to date" },
 
